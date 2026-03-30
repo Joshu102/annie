@@ -10,3 +10,4 @@ Pillow
 requests
 plotly
 duckduckgo-search
+Wikipedia 
