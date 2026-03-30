@@ -31,7 +31,7 @@ if not st.session_state.active:
         st.markdown("<h1 style='text-align: center; color: white;'>🧠 NEURAL MATTER AI</h1>", unsafe_allow_html=True)
         st.markdown(f"""
             <div style='background: rgba(255,255,255,0.03); padding: 25px; border-radius: 20px; border: 1px solid #444;'>
-                <p style='color: #8ab4f8; text-align: center;'>PROJECT BY TEAM ALPHA</p>
+                <p style='color: #8ab4f8; text-align: center;'>PROJECT BY</p>
                 <div class='name-tag'>SUMA SREE | JHANSI TANUJA | NAVYA SRI</div>
             </div>
         """, unsafe_allow_html=True)
