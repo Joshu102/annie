@@ -23,11 +23,17 @@ st.markdown("""
 
 if 'active' not in st.session_state: st.session_state.active = False
 
-# ==================== HOME PAGE ====================
+# ==================== HOME PAGE (Logo Added Here) ====================
 if not st.session_state.active:
     st.write("")
     _, col, _ = st.columns([1, 2, 1])
     with col:
+        # --- CUSTOM LOGO INTEGRATION ---
+        try:
+            st.image('maxresdefault-removebg-preview (1).png', use_column_width=True)
+        except:
+            st.markdown("<h1 style='text-align: center; color: #ff9900;'>RAMACHANDRA</h1>", unsafe_allow_html=True)
+            
         st.markdown("<h1 style='text-align: center; color: white;'>🧠 NEURAL MATTER AI</h1>", unsafe_allow_html=True)
         st.markdown(f"""
             <div style='background: rgba(255,255,255,0.03); padding: 25px; border-radius: 20px; border: 1px solid #444;'>
@@ -43,23 +49,25 @@ if not st.session_state.active:
 else:
     st.sidebar.button("⬅️ Home", on_click=lambda: st.session_state.update({"active": False}))
     
+    # Simple Title for Search Page
+    st.markdown("<h2 style='color:#00f2ff; text-align:center;'>NEURAL SEARCH ENGINE</h2>", unsafe_allow_html=True)
+    
     query = st.text_input("", placeholder="Search anything (Ex: Black Hole, India, Python)...")
 
     if query:
         with st.spinner('Neural Link Establishing...'):
             try:
                 wikipedia.set_lang("en")
-                # Multiple results search
                 search_list = wikipedia.search(query, results=6)
                 
                 if search_list:
-                    # 1. MAIN MATTER (AI Overview)
+                    # 1. MAIN MATTER (Full Content for more data)
                     main_page = wikipedia.page(search_list[0], auto_suggest=False)
                     st.markdown(f"""
                         <div class='featured-box'>
                             <div style='color: #00f2ff; font-size: 14px; font-weight: bold;'>AI OVERVIEW: {main_page.title}</div>
-                            <div style='color: white; font-size: 19px; line-height: 1.8; margin-top: 15px;'>
-                                {main_page.summary[:1200]}...
+                            <div style='color: white; font-size: 19px; line-height: 1.8; margin-top: 15px; text-align: justify;'>
+                                {main_page.content[:2500]}...
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
@@ -78,4 +86,5 @@ else:
                 else:
                     st.warning("Mama, information dorkatle. Vere topic search chey.")
             except:
+                # Error Handling
                 st.error("Connection error! Please try again in a moment.")
