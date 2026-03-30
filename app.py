@@ -1,97 +1,106 @@
 import streamlit as st
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
+import os
+import warnings
 
-# 1. Page Config & UI Styling (Google Vibe)
-st.set_page_config(page_title="Google AI Search", layout="centered")
+# 1. Unwanted Logs & Warnings Pause
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+warnings.filterwarnings('ignore')
 
+# 2. Page Config
+st.set_page_config(page_title="Neural Matter AI", layout="wide")
+
+# 3. Custom CSS for "Thop" UI
 st.markdown("""
     <style>
-    .main { background-color: #202124; }
-    .result-card { padding: 15px; margin-bottom: 20px; border-radius: 8px; }
-    .result-url { color: #bdc1c6; font-size: 14px; margin-bottom: 5px; }
-    .result-title { color: #8ab4f8; font-size: 20px; text-decoration: none; font-weight: bold; }
-    .result-title:hover { text-decoration: underline; }
-    .result-snippet { color: #bdc1c6; font-size: 15px; line-height: 1.5; margin-top: 8px; }
-    .ad-badge { color: #ffffff; background-color: #202124; border: 1px solid #bdc1c6; 
-                padding: 2px 6px; border-radius: 3px; font-size: 12px; margin-right: 10px; font-weight: bold; }
+    .main { background-color: #000000 !important; }
+    /* Featured Snippet (Main Matter) */
+    .featured-box {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px; padding: 25px;
+        border: 1px solid #333; margin-bottom: 30px;
+        border-left: 5px solid #00f2ff;
+    }
+    .featured-title { color: #bdc1c6; font-size: 14px; margin-bottom: 10px; }
+    .featured-content { color: white; font-size: 20px; line-height: 1.6; }
+    
+    /* Regular Result Links */
+    .result-link { color: #8ab4f8; font-size: 20px; text-decoration: none; }
+    .result-link:hover { text-decoration: underline; }
+    .result-url { color: #bdc1c6; font-size: 14px; margin-bottom: 2px; }
+    .result-text { color: #bdc1c6; font-size: 16px; margin-top: 5px; margin-bottom: 25px; }
+    
+    .batch-card {
+        background: linear-gradient(135deg, #111, #222);
+        padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #444;
+    }
+    .name-tag { color: #ccff00; font-size: 22px; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Load Model
-@st.cache_resource
-def load_model():
-    return SentenceTransformer('all-MiniLM-L6-v2')
+# 4. Session State
+if 'active' not in st.session_state: st.session_state.active = False
 
-model = load_model()
+# ==================== HOME PAGE ====================
+if not st.session_state.active:
+    st.write("")
+    _, col, _ = st.columns([1, 2, 1])
+    with col:
+        st.markdown("<h1 style='text-align: center; color: white;'>🧠 NEURAL MATTER ENGINE</h1>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class='batch-card'>
+                <p style='color: #8ab4f8;'>DEVELOPED BY</p>
+                <div class='name-tag'>SUMA SREE | JHANSI TANUJA | NAVYA SRI</div>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button("LAUNCH ENGINE 🚀", use_container_width=True):
+            st.session_state.active = True
+            st.rerun()
 
-# 3. Mega Database (Matter ekkuva + Ad links)
-database = [
-    {
-        "title": "India - Wikipedia, the free encyclopedia",
-        "url": "https://en.wikipedia.org/wiki/India",
-        "content": "India, officially the Republic of India, is a country in South Asia. It is the seventh-largest country by area and the most populous country in the world. With a rich history spanning over 5,000 years, India is known for its diverse culture, heritage, and as the birthplace of four major religions.",
-        "is_ad": False
-    },
-    {
-        "title": "Ad: Best AI Course 2026 - Master Data Science",
-        "url": "https://www.coursera.org/specializations/ai",
-        "content": "Learn Artificial Intelligence from top industry experts. Get certified in Machine Learning, Deep Learning, and NLP. Enroll now for a 20% discount on professional certifications.",
-        "is_ad": True
-    },
-    {
-        "title": "Artificial Intelligence - IBM Topics",
-        "url": "https://www.ibm.com/topics/artificial-intelligence",
-        "content": "Artificial Intelligence leverages computers and machines to mimic the problem-solving and decision-making capabilities of the human mind. It includes sub-fields like Machine Learning and Deep Learning which use neural networks to process data.",
-        "is_ad": False
-    },
-    {
-        "title": "Python Programming Language - Official Site",
-        "url": "https://www.python.org/",
-        "content": "Python is an interpreted, high-level, general-purpose programming language. Its design philosophy emphasizes code readability. Python is used widely in automation, web development, and is the #1 language for AI research.",
-        "is_ad": False
-    },
-    {
-        "title": "History of the Indian Subcontinent",
-        "url": "https://www.britannica.com/place/India",
-        "content": "The history of India begins with the Indus Valley Civilization and the coming of the Aryans. It has seen the rise of great empires like the Maurya, Gupta, and Mughal, leading to the modern democratic republic we see today.",
-        "is_ad": False
-    }
-]
-
-# Pre-processing
-texts = [d['content'] for d in database]
-db_embeddings = model.encode(texts)
-
-# 4. Search Interface
-st.image("https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_92x30dp.png", width=150)
-query = st.text_input("", placeholder="Search Google or type a URL", label_visibility="collapsed")
-
-if query:
-    query_embedding = model.encode([query])
-    similarities = cosine_similarity(query_embedding, db_embeddings)[0]
+# ==================== SEARCH PAGE (GOOGLE VIBE) ====================
+else:
+    st.sidebar.button("⬅️ Home", on_click=lambda: st.session_state.update({"active": False}))
     
-    # Sorting by similarity
-    sorted_indices = np.argsort(similarities)[::-1]
-    
-    st.write(f"<p style='color:#bdc1c6; font-size:14px;'>About {len(database)} results found</p>", unsafe_allow_html=True)
-    
-    found = False
-    for i in sorted_indices:
-        # High Accuracy Filter: Threshold > 0.25
-        if similarities[i] > 0.25:
-            found = True
-            item = database[i]
-            ad_tag = '<span class="ad-badge">Ad</span>' if item['is_ad'] else ''
-            
+    @st.cache_resource
+    def load_model(): return SentenceTransformer('all-MiniLM-L6-v2')
+    model = load_model()
+
+    # Expand database for "India" & AI
+    db = [
+        {"t": "India - Wikipedia", "u": "https://en.wikipedia.org/wiki/India", "c": "India is the most populous country in the world and the seventh-largest country by area. It is a nuclear-weapon state and has the world's third-largest economy by PPP."},
+        {"t": "Indian Economy & Tech", "u": "https://www.india.gov.in/", "c": "India is a global leader in information technology services and is home to the world's third-largest startup ecosystem."},
+        {"t": "Artificial Intelligence Basics", "u": "https://www.ibm.com/topics/artificial-intelligence", "c": "Artificial intelligence leverages computers and machines to mimic the problem-solving and decision-making capabilities of the human mind."},
+        {"t": "Neural Networks Explained", "u": "https://en.wikipedia.org/wiki/Neural_network", "c": "A neural network is a method in artificial intelligence that teaches computers to process data in a way that is inspired by the human brain."},
+        {"t": "Python for Data Science", "u": "https://www.python.org/", "c": "Python is a high-level, general-purpose programming language. Its design philosophy emphasizes code readability with use of significant indentation."}
+    ]
+
+    query = st.text_input("", placeholder="Search something (Try: India)...")
+
+    if query:
+        q_vec = model.encode([query])
+        d_vecs = model.encode([item['c'] for item in db])
+        sims = cosine_similarity(q_vec, d_vecs)[0]
+        sorted_indices = sims.argsort()[::-1]
+
+        # --- FIRST RESULT AS FEATURED SNIPPET ---
+        top_idx = sorted_indices[0]
+        if sims[top_idx] > 0.3:
             st.markdown(f"""
-                <div class="result-card">
-                    <div class="result-url">{item['url']}</div>
-                    <a class="result-title" href="{item['url']}" target="_blank">{ad_tag}{item['title']}</a>
-                    <div class="result-snippet">{item['content']}</div>
+                <div class='featured-box'>
+                    <div class='featured-title'>AI Overview: {db[top_idx]['t']}</div>
+                    <div class='featured-content'>{db[top_idx]['c']}</div>
                 </div>
             """, unsafe_allow_html=True)
-    
-    if not found:
-        st.error("No accurate results found, mama! Try another query.")
+
+        # --- OTHER RESULTS AS LINKS ---
+        st.write("<p style='color:#bdc1c6;'>People also search for:</p>", unsafe_allow_html=True)
+        for i in sorted_indices:
+            if sims[i] > 0.2:
+                st.markdown(f"""
+                    <div style="max-width: 700px;">
+                        <div class="result-url">{db[i]['u']}</div>
+                        <a class="result-link" href="{db[i]['u']}" target="_blank">{db[i]['t']}</a>
+                        <div class="result-text">{db[i]['c']}</div>
+                    </div>
+                """, unsafe_allow_html=True)
