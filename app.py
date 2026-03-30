@@ -30,7 +30,7 @@ if not st.session_state.active:
     with col:
         # --- CUSTOM LOGO INTEGRATION ---
         try:
-            st.image('maxresdefault-removebg-preview (1).png', use_column_width=True)
+            st.image('maxresdefault-removebg-preview (1).png', use_container_width=True)
         except:
             st.markdown("<h1 style='text-align: center; color: #ff9900;'>RAMACHANDRA</h1>", unsafe_allow_html=True)
             
