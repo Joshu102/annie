@@ -1,45 +1,52 @@
 import streamlit as st
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+from duckduckgo_search import DDGS
 import os
 import warnings
 
-# 1. Unwanted Logs & Warnings Pause
+# 1. Background Settings & Logs Pause
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 warnings.filterwarnings('ignore')
 
-# 2. Page Config
-st.set_page_config(page_title="Neural Matter AI", layout="wide")
+st.set_page_config(page_title="Neural Matter AI", layout="wide", initial_sidebar_state="collapsed")
 
-# 3. Custom CSS for "Thop" UI
+# 2. HEAVY GRAPHICS CSS (Neon & Glassmorphism)
 st.markdown("""
     <style>
-    .main { background-color: #000000 !important; }
-    /* Featured Snippet (Main Matter) */
+    .main {
+        background: linear-gradient(135deg, #000000 0%, #0a0a2e 100%) !important;
+    }
+    .stTextInput>div>div>input {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: #00f2ff !important;
+        border: 2px solid #00f2ff !important;
+        border-radius: 15px !important;
+        font-size: 20px !important;
+        padding: 25px !important;
+    }
     .featured-box {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 15px; padding: 25px;
-        border: 1px solid #333; margin-bottom: 30px;
-        border-left: 5px solid #00f2ff;
+        background: rgba(0, 242, 255, 0.05);
+        border-radius: 20px; padding: 30px;
+        border: 1px solid rgba(0, 242, 255, 0.3);
+        box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+        margin-bottom: 30px;
     }
-    .featured-title { color: #bdc1c6; font-size: 14px; margin-bottom: 10px; }
-    .featured-content { color: white; font-size: 20px; line-height: 1.6; }
-    
-    /* Regular Result Links */
-    .result-link { color: #8ab4f8; font-size: 20px; text-decoration: none; }
-    .result-link:hover { text-decoration: underline; }
-    .result-url { color: #bdc1c6; font-size: 14px; margin-bottom: 2px; }
-    .result-text { color: #bdc1c6; font-size: 16px; margin-top: 5px; margin-bottom: 25px; }
-    
-    .batch-card {
-        background: linear-gradient(135deg, #111, #222);
-        padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #444;
+    .result-card {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 20px; border-radius: 15px;
+        margin-bottom: 20px; border-left: 5px solid #ff00ea;
     }
-    .name-tag { color: #ccff00; font-size: 22px; font-weight: bold; }
+    .name-tag {
+        color: #ccff00; font-size: 24px; font-weight: bold;
+        text-shadow: 0 0 10px #ccff00; text-align: center;
+    }
+    .image-container img {
+        border-radius: 15px; border: 2px solid #00f2ff;
+        box-shadow: 0 0 15px #00f2ff55;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# 4. Session State
+# 3. Session State for Navigation
 if 'active' not in st.session_state: st.session_state.active = False
 
 # ==================== HOME PAGE ====================
@@ -47,60 +54,65 @@ if not st.session_state.active:
     st.write("")
     _, col, _ = st.columns([1, 2, 1])
     with col:
-        st.markdown("<h1 style='text-align: center; color: white;'>🧠 NEURAL MATTER ENGINE</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color: white; font-size: 60px;'>🧠 NEURAL MATTER</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #00f2ff; letter-spacing: 5px;'>ADVANCED SEMANTIC ENGINE</p>", unsafe_allow_html=True)
+        
         st.markdown(f"""
-            <div class='batch-card'>
-                <p style='color: #8ab4f8;'>DEVELOPED BY</p>
-                <div class='name-tag'>SUMA SREE | JHANSI TANUJA | NAVYA SRI</div>
+            <div style='background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid #444;'>
+                <p style='color: #8ab4f8; text-align: center;'>DEVELOPED BY</p>
+                <div class='name-tag'>SUMA SREE • JHANSI TANUJA • NAVYA SRI</div>
             </div>
         """, unsafe_allow_html=True)
-        if st.button("LAUNCH ENGINE 🚀", use_container_width=True):
+        
+        st.write("")
+        if st.button("ACTIVATE NEURAL LINK 🚀", use_container_width=True):
             st.session_state.active = True
             st.rerun()
 
-# ==================== SEARCH PAGE (GOOGLE VIBE) ====================
+# ==================== SEARCH PAGE (Live Data + Images) ====================
 else:
-    st.sidebar.button("⬅️ Home", on_click=lambda: st.session_state.update({"active": False}))
+    st.sidebar.button("⬅️ Back to Terminal", on_click=lambda: st.session_state.update({"active": False}))
     
-    @st.cache_resource
-    def load_model(): return SentenceTransformer('all-MiniLM-L6-v2')
-    model = load_model()
-
-    # Expand database for "India" & AI
-    db = [
-        {"t": "India - Wikipedia", "u": "https://en.wikipedia.org/wiki/India", "c": "India is the most populous country in the world and the seventh-largest country by area. It is a nuclear-weapon state and has the world's third-largest economy by PPP."},
-        {"t": "Indian Economy & Tech", "u": "https://www.india.gov.in/", "c": "India is a global leader in information technology services and is home to the world's third-largest startup ecosystem."},
-        {"t": "Artificial Intelligence Basics", "u": "https://www.ibm.com/topics/artificial-intelligence", "c": "Artificial intelligence leverages computers and machines to mimic the problem-solving and decision-making capabilities of the human mind."},
-        {"t": "Neural Networks Explained", "u": "https://en.wikipedia.org/wiki/Neural_network", "c": "A neural network is a method in artificial intelligence that teaches computers to process data in a way that is inspired by the human brain."},
-        {"t": "Python for Data Science", "u": "https://www.python.org/", "c": "Python is a high-level, general-purpose programming language. Its design philosophy emphasizes code readability with use of significant indentation."}
-    ]
-
-    query = st.text_input("", placeholder="Search something (Try: India)...")
+    query = st.text_input("", placeholder="Vethuku Mama... (Ex: iPhone 15, Black Hole, Elon Musk)")
 
     if query:
-        q_vec = model.encode([query])
-        d_vecs = model.encode([item['c'] for item in db])
-        sims = cosine_similarity(q_vec, d_vecs)[0]
-        sorted_indices = sims.argsort()[::-1]
+        with st.spinner('Accessing Global Data...'):
+            try:
+                with DDGS() as ddgs:
+                    # 1. Get Text Results
+                    text_results = list(ddgs.text(query, max_results=5))
+                    # 2. Get Image Results
+                    image_results = list(ddgs.images(query, max_results=3))
+                
+                if text_results:
+                    # --- TOP SECTION: IMAGES ---
+                    if image_results:
+                        img_cols = st.columns(len(image_results))
+                        for i, img in enumerate(image_results):
+                            with img_cols[i]:
+                                st.markdown('<div class="image-container">', unsafe_allow_html=True)
+                                st.image(img['image'], use_column_width=True)
+                                st.markdown('</div>', unsafe_allow_html=True)
 
-        # --- FIRST RESULT AS FEATURED SNIPPET ---
-        top_idx = sorted_indices[0]
-        if sims[top_idx] > 0.3:
-            st.markdown(f"""
-                <div class='featured-box'>
-                    <div class='featured-title'>AI Overview: {db[top_idx]['t']}</div>
-                    <div class='featured-content'>{db[top_idx]['c']}</div>
-                </div>
-            """, unsafe_allow_html=True)
+                    # --- FEATURED SNIPPET ---
+                    top = text_results[0]
+                    st.markdown(f"""
+                        <div class='featured-box'>
+                            <div style='color: #00f2ff; font-size: 14px; font-weight: bold;'>AI KNOWLEDGE BASE</div>
+                            <div style='color: white; font-size: 20px; margin-top: 15px;'>{top['body']}</div>
+                        </div>
+                    """, unsafe_allow_html=True)
 
-        # --- OTHER RESULTS AS LINKS ---
-        st.write("<p style='color:#bdc1c6;'>People also search for:</p>", unsafe_allow_html=True)
-        for i in sorted_indices:
-            if sims[i] > 0.2:
-                st.markdown(f"""
-                    <div style="max-width: 700px;">
-                        <div class="result-url">{db[i]['u']}</div>
-                        <a class="result-link" href="{db[i]['u']}" target="_blank">{db[i]['t']}</a>
-                        <div class="result-text">{db[i]['c']}</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                    # --- REMAINING RESULTS ---
+                    for r in text_results[1:]:
+                        st.markdown(f"""
+                            <div class="result-card">
+                                <div style="color: #bdc1c6; font-size: 13px;">{r['href']}</div>
+                                <a style="color: #ff00ea; font-size: 22px; text-decoration: none; font-weight: bold;" href="{r['href']}" target="_blank">{r['title']}</a>
+                                <div style="color: #bdc1c6; margin-top: 8px;">{r['body']}</div>
+                            </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.warning("Data not found in this sector, Dude.")
+            except:
+                st.error("Connection Interrupted! Try again.")
